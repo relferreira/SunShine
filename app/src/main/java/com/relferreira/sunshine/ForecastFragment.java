@@ -1,8 +1,13 @@
 package com.relferreira.sunshine;
 
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -39,7 +44,7 @@ import java.util.Arrays;
 public class ForecastFragment extends Fragment {
 
     private ArrayAdapter<String> adapter;
-    private ArrayList<String> weekForecast;
+    private ArrayList<String> weekForecast = new ArrayList<>();
 
     public ForecastFragment() {
     }
@@ -58,17 +63,6 @@ public class ForecastFragment extends Fragment {
 
         ListView listView = (ListView) view.findViewById(R.id.listview_forecast);
 
-        String[] forecastArray = {
-                "Today - Sunny - 88/63",
-                "Tomorrow - Foggy - 70/46",
-                "Weds - Cloudy - 73/63",
-                "Thurs - Rainy - 64/51",
-                "Fri - Foggy - 70/46",
-                "Sat - Sunny - 76/68"
-        };
-
-        weekForecast = new ArrayList<>(Arrays.asList(forecastArray));
-
         adapter = new ArrayAdapter<>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, weekForecast);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -85,6 +79,12 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.forecastfragment, menu);
     }
@@ -93,11 +93,34 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_refresh:
-                FetchWeatherTask task = new FetchWeatherTask();
-                task.execute("94043,USA");
+                updateWeather();
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateWeather(){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = preferences
+                .getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+
+        String unit = preferences
+                .getString(getString(R.string.pref_unit_key), getString(R.string.pref_unit_default));
+
+        FetchWeatherTask task = new FetchWeatherTask();
+        task.execute(location, unit);
+    }
+
+    public static boolean checkIfAppIsInstalled(Context context, String uri) {
+        PackageManager pm = context.getPackageManager();
+        boolean appInstalled = false;
+        try {
+            pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
+            appInstalled = true;
+        } catch (PackageManager.NameNotFoundException e) {
+            appInstalled = false;
+        }
+        return appInstalled;
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]>{
@@ -120,7 +143,7 @@ public class ForecastFragment extends Fragment {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
             String forecastJsonStr = null;
-            String units = "metric";
+            String units = params[1];
             int days = 7;
             String format = "json";
 
