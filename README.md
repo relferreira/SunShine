@@ -2,6 +2,6 @@
 
 Project for the Udacity Nanodegree Program.
 
-###Observations
+###Description
 
 Project created and tested using Android Studio 2.1
