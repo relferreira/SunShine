@@ -16,6 +16,8 @@
     <string name="pref_unit_key" translatable="false">unit</string>
     <string name="pref_unit_label">Temperatura Units</string>
     <string name="pref_unit_default" translatable="false">metric</string>
+    <string name="pref_unit_metric" translatable="false">metric</string>
+    <string name="pref_unit_imperial" translatable="false">imperial</string>
 
 
 </resources>
