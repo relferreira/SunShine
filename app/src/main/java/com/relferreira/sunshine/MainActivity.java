@@ -12,12 +12,36 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String location;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        location = Utility.getPreferredLocation(this);
+
+        if(savedInstanceState == null){
+            ForecastFragment frag = new ForecastFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.container, frag, ForecastFragment.FORECAST_TAG)
+                    .commit();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String currentLocation = Utility.getPreferredLocation(this);
+        if(!currentLocation.equals(location)){
+            ForecastFragment frag = (ForecastFragment) getSupportFragmentManager().findFragmentByTag(ForecastFragment.FORECAST_TAG);
+            if(frag != null){
+                frag.onLocationChanged();
+                location = currentLocation;
+            }
+        }
     }
 
     @Override
@@ -47,8 +71,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void launchMapIntent(){
-        String location = PreferenceManager.getDefaultSharedPreferences(this)
-                .getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        String location = Utility.getPreferredLocation(this);
         //TODO refactor
         Uri uri = Uri.parse("geo:0,0?")
                 .buildUpon()
