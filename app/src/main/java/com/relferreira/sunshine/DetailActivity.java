@@ -1,6 +1,7 @@
 package com.relferreira.sunshine;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -20,7 +21,7 @@ public class DetailActivity extends AppCompatActivity {
 
     public final static String ARG_WEATHER = "arg_weather";
     public final String FORECAST_SHARE_HASHTAG = "#SunshineApp";
-    private String weather;
+    private Uri weather;
     private ShareActionProvider shareActionProvider;
 
     @Override
@@ -32,13 +33,13 @@ public class DetailActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        weather = getIntent().getDataString();
+        weather = getIntent().getData();
 
         if(savedInstanceState == null){
             DetailActivityFragment frag = DetailActivityFragment.newInstance(weather);
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.container, frag)
+                    .add(R.id.weather_detail_container, frag)
                     .commit();
         }
     }

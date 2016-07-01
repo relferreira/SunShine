@@ -27,7 +27,7 @@ import com.relferreira.sunshine.data.WeatherContract;
  */
 public class DetailActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    public static final int LOADER_ID = 0;
+    public static final int DETAIL_LOADER = 0;
 
     private static final String[] FORECAST_COLUMNS = {
             WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
@@ -65,10 +65,11 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     private TextView humidityView;
     private TextView pressureView;
     private TextView windView;
+    private Uri uri;
 
-    public static DetailActivityFragment newInstance(String weather){
+    public static DetailActivityFragment newInstance(Uri dateUri){
         Bundle bundle = new Bundle();
-        bundle.putString(ARG_WEATHER, weather);
+        bundle.putParcelable(ARG_WEATHER, dateUri);
         DetailActivityFragment frag = new DetailActivityFragment();
         frag.setArguments(bundle);
         return frag;
@@ -129,14 +130,16 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        getLoaderManager().initLoader(LOADER_ID, null, this);
+        getLoaderManager().initLoader(DETAIL_LOADER, null, this);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uri = null;
+        uri = null;
         if(getArguments() != null)
-            uri = Uri.parse((String) getArguments().get(ARG_WEATHER));
+            uri = getArguments().getParcelable(ARG_WEATHER);
+        else
+            return null;
         return new CursorLoader(getActivity(), uri, FORECAST_COLUMNS, null, null, null);
     }
 
@@ -182,6 +185,15 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+
+    public void onLocationChanged(String newLocation) {
+        if(uri != null){
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            uri = updatedUri;
+            getLoaderManager().restartLoader(DETAIL_LOADER, null, this);
+        }
     }
 
     private void setShareIntent() {
