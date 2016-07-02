@@ -33,6 +33,7 @@ import java.util.ArrayList;
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String FORECAST_TAG = "forecast_tag";
+    public static final String SELECTED_ITEM_POSITION = "selected_item_position";
     public static final int LOADER_ID = 1;
     private static final String[] FORECAST_COLUMNS = {
             WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
@@ -58,6 +59,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private ForecastAdapter adapter;
     private ArrayList<String> weekForecast = new ArrayList<>();
+    private ListView listView;
+    private int selectedPosition;
+    private boolean twoPanel;
 
     public interface ForecastCallback {
 
@@ -79,10 +83,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ListView listView = (ListView) view.findViewById(R.id.listview_forecast);
-
-
+        listView = (ListView) view.findViewById(R.id.listview_forecast);
         adapter = new ForecastAdapter(getActivity(), null, 0);
+        adapter.setTwoPanelMode(twoPanel);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -98,6 +101,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             }
         });
 
+        if(savedInstanceState != null){
+            selectedPosition = savedInstanceState.getInt(SELECTED_ITEM_POSITION);
+        }
         return view;
     }
 
@@ -158,10 +164,24 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.swapCursor(data);
+        listView.smoothScrollToPosition(selectedPosition);
+
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         adapter.swapCursor(null);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(SELECTED_ITEM_POSITION, listView.getCheckedItemPosition());
+        super.onSaveInstanceState(outState);
+    }
+
+    public void setAdapterMode(boolean twoPanel){
+        this.twoPanel = twoPanel;
+        if(adapter != null)
+            adapter.setTwoPanelMode(twoPanel);
     }
 }

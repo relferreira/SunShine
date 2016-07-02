@@ -23,8 +23,6 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         location = Utility.getPreferredLocation(this);
 
@@ -36,8 +34,13 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                         .replace(R.id.weather_detail_container, new DetailActivityFragment(), DETAILFRAGMENT_TAG)
                         .commit();
             }
+
+            ForecastFragment frag = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
+            frag.setAdapterMode(twoPanelLayout);
+
         } else {
             twoPanelLayout = false;
+            getSupportActionBar().setElevation(0f);
         }
     }
 
