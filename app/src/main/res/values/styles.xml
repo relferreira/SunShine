@@ -17,4 +17,20 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="ForecastTheme" parent="AppTheme">
+        <item name="actionBarStyle">@style/ActionBar.Solid.SunShine.NoTitle</item>
+    </style>
+
+    <style name="ActionBar.Solid.SunShine.NoTitle" parent="@style/Widget.AppCompat.ActionBar.Solid">
+        <item name="displayOptions">useLogo|showHome</item>
+        <item name="logo">@drawable/ic_logo</item>
+    </style>
+
+    <style name="ForecastList">
+        <item name="android:choiceMode">none</item>
+    </style>
+
+    <style name="SettingsTheme" parent="AppTheme">
+    </style>
+
 </resources>
