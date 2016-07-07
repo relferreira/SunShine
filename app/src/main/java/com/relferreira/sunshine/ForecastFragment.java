@@ -1,13 +1,10 @@
 package com.relferreira.sunshine;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -20,10 +17,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.relferreira.sunshine.data.WeatherContract;
+import com.relferreira.sunshine.sync.SunshineSyncAdapter;
 
 import java.util.ArrayList;
 
@@ -135,10 +132,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void updateWeather(){
-
-        FetchWeatherTask task = new FetchWeatherTask(getActivity());
-        String location = Utility.getPreferredLocation(getActivity());
-        task.execute(location);
+        SunshineSyncAdapter.syncImmediately(getActivity());
     }
 
     public static boolean checkIfAppIsInstalled(Context context, String uri) {

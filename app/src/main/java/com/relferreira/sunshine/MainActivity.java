@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.relferreira.sunshine.data.WeatherContract;
+import com.relferreira.sunshine.sync.SunshineSyncAdapter;
 
 import java.util.Date;
 
@@ -46,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             twoPanelLayout = false;
             getSupportActionBar().setElevation(0f);
         }
+
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
