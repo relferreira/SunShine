@@ -12,6 +12,8 @@ import android.widget.Toast;
 
 import com.relferreira.sunshine.data.WeatherContract;
 
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity implements ForecastFragment.ForecastCallback {
 
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
@@ -30,8 +32,10 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             twoPanelLayout = true;
 
             if(savedInstanceState == null){
+                String location = Utility.getPreferredLocation(this);
+                Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(location, new Date().getTime());
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.weather_detail_container, new DetailActivityFragment(), DETAILFRAGMENT_TAG)
+                        .replace(R.id.weather_detail_container, DetailActivityFragment.newInstance(uri), DETAILFRAGMENT_TAG)
                         .commit();
             }
 
