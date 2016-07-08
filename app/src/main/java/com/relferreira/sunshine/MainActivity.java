@@ -89,27 +89,9 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
-        } else if(id == R.id.action_map){
-            launchMapIntent();
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void launchMapIntent(){
-        String location = Utility.getPreferredLocation(this);
-        //TODO refactor
-        Uri uri = Uri.parse("geo:0,0?")
-                .buildUpon()
-                .appendQueryParameter("q", location)
-                .build();
-
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(uri);
-        if(intent.resolveActivity(getPackageManager()) != null)
-            startActivity(intent);
-        else
-            Toast.makeText(this, getResources().getString(R.string.map_not_availabe), Toast.LENGTH_LONG).show();
     }
 
     @Override
