@@ -2,12 +2,10 @@ package com.relferreira.sunshine;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -20,10 +18,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.relferreira.sunshine.data.WeatherContract;
+import com.relferreira.sunshine.sync.SunshineSyncAdapter;
 
 import java.util.ArrayList;
 
@@ -124,8 +123,30 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             case R.id.action_refresh:
                 updateWeather();
                 return true;
+            case R.id.action_map:
+                launchMapIntent();
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void launchMapIntent(){
+        if(adapter != null) {
+            Cursor c = adapter.getCursor();
+            if (c.moveToFirst()) {
+                String lat = c.getString(COL_COORD_LAT);
+                String longtu = c.getString(COL_COORD_LONG);
+
+                Uri uri = Uri.parse("geo:" + lat + "," + longtu + "0?");
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(uri);
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null)
+                    startActivity(intent);
+                else
+                    Toast.makeText(getActivity(), getResources().getString(R.string.map_not_availabe), Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     public void onLocationChanged(){
@@ -135,10 +156,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void updateWeather(){
-
-        FetchWeatherTask task = new FetchWeatherTask(getActivity());
-        String location = Utility.getPreferredLocation(getActivity());
-        task.execute(location);
+        SunshineSyncAdapter.syncImmediately(getActivity());
     }
 
     public static boolean checkIfAppIsInstalled(Context context, String uri) {
