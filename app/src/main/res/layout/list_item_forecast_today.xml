@@ -58,7 +58,8 @@
                 android:layout_height="100dp"
                 android:layout_gravity="center"
                 tools:src="@mipmap/ic_launcher"
-                android:contentDescription="@null" />
+                android:contentDescription="@null"
+                android:adjustViewBounds="true"/>
         </FrameLayout>
         <TextView
             android:id="@+id/list_item_forecast_textview"

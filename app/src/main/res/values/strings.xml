@@ -50,6 +50,11 @@
     <string name="pref_unit_default" translatable="false">metric</string>
     <string name="pref_unit_metric" translatable="false">metric</string>
     <string name="pref_unit_imperial" translatable="false">imperial</string>
+
+    <string name="pref_theme_label">Theme</string>
+    <string name="pref_theme_key" translatable="false">theme</string>
+    <string name="pref_theme_default" translatable="false">default</string>
+
     <string name="list_item_forecast_icon_des">forecast icon</string>
 
     <!-- Notification Format -->
@@ -69,5 +74,10 @@
     <string name="a11y_high_temp">High: <xliff:g id="high">%1$s</xliff:g></string>
     <string name="a11y_forecast_icon">Forecast icon: <xliff:g id="condition">%1$s</xliff:g></string>
     <string name="a11y_forecast">Forecast: <xliff:g id="condition">%1$s</xliff:g></string>
+
+
+    <string name="format_art_url" translatable="false">https://raw.githubusercontent.com/udacity/Sunshine-Version-2/sunshine_master/app/src/main/res/drawable-xxhdpi/art_<xliff:g id="description">%s</xliff:g>.png</string>
+    <string name="format_art_url_colored" translatable="false">https://raw.githubusercontent.com/udacity/sunshine_icons/master/Archive/Colored/art_<xliff:g id="description">%s</xliff:g>.png</string>
+    <string name="format_art_url_mono" translatable="false">https://raw.githubusercontent.com/udacity/sunshine_icons/master/Archive/Mono/art_<xliff:g id="description">%s</xliff:g>.png</string>
 
 </resources>

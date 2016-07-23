@@ -260,6 +260,45 @@ public class Utility {
         return -1;
     }
 
+    public static String getArtUrlForWeatherCondition(Context context, int weatherId) {
+        // Based on weather code data found at:
+        // http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        String theme = pref.getString(context.getString(R.string.pref_theme_key), context.getString(R.string.pref_theme_default));
+        int stringId = -1;
+        if(theme.equals("colored")) {
+            stringId = R.string.format_art_url_colored;
+        } else if (theme.equals("mono")) {
+            stringId = R.string.format_art_url_mono;
+        } else {
+            stringId = R.string.format_art_url;
+        }
+        if (weatherId >= 200 && weatherId <= 232) {
+            return context.getString(stringId, "storm");
+        } else if (weatherId >= 300 && weatherId <= 321) {
+            return context.getString(stringId, "light_rain");
+        } else if (weatherId >= 500 && weatherId <= 504) {
+            return context.getString(stringId, "rain");
+        } else if (weatherId == 511) {
+            return context.getString(stringId, "snow");
+        } else if (weatherId >= 520 && weatherId <= 531) {
+            return context.getString(stringId, "rain");
+        } else if (weatherId >= 600 && weatherId <= 622) {
+            return context.getString(stringId, "snow");
+        } else if (weatherId >= 701 && weatherId <= 761) {
+            return context.getString(stringId, "fog");
+        } else if (weatherId == 761 || weatherId == 781) {
+            return context.getString(stringId, "storm");
+        } else if (weatherId == 800) {
+            return context.getString(stringId, "clear");
+        } else if (weatherId == 801) {
+            return context.getString(stringId, "light_clouds");
+        } else if (weatherId >= 802 && weatherId <= 804) {
+            return context.getString(stringId, "clouds");
+        }
+        return null;
+    }
+
     public static int getLocationStatus(Context context) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         return pref.getInt(context.getString(R.string.pref_location_status_key), SunshineSyncAdapter.LOCATION_STATUS_OK);

@@ -13,7 +13,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +27,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.text.format.Time;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
 import com.relferreira.sunshine.DetailActivity;
 import com.relferreira.sunshine.MainActivity;
 import com.relferreira.sunshine.R;
@@ -45,6 +48,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
@@ -523,19 +527,49 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 TaskStackBuilder taskBuilder = TaskStackBuilder.create(context);
                 taskBuilder.addNextIntent(intent);
 
-                PendingIntent pendingIntent = taskBuilder.getPendingIntent(0, PendingIntent.FLAG_ONE_SHOT);
-                Notification notification = new NotificationCompat.Builder(context)
-                        .setContentTitle(context.getString(R.string.notification_title))
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setContentText(contentText)
-                        .setContentIntent(pendingIntent)
-                        .build();
+                int iconId = Utility.getIconResourceForWeatherCondition(id);
+                Resources resources = context.getResources();
+                int artResourceId = Utility.getArtResourceForWeatherCondition(id);
+                String artUrl = Utility.getArtUrlForWeatherCondition(context,id);
 
-                NotificationManagerCompat.from(context).notify(WEATHER_NOTIFICATION_ID, notification);
+                int largeIconWidth = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) ?
+                        context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_width) :
+                        context.getResources().getDimensionPixelSize(R.dimen.notification_large_icon_default);
 
-                SharedPreferences.Editor editor = pref.edit();
-                editor.putLong(context.getString(R.string.pref_last_notification), System.currentTimeMillis());
-                editor.apply();
+                int largeIconHeight = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) ?
+                        context.getResources().getDimensionPixelSize(android.R.dimen.notification_large_icon_height) :
+                        context.getResources().getDimensionPixelSize(R.dimen.notification_large_icon_default);
+
+                try {
+                    Bitmap bitmap = Glide.with(getContext())
+                            .load(artUrl)
+                            .asBitmap()
+                            .error(artResourceId)
+                            .into(largeIconWidth, largeIconHeight)
+                            .get();
+
+                    PendingIntent pendingIntent = taskBuilder.getPendingIntent(0, PendingIntent.FLAG_ONE_SHOT);
+                    Notification notification = new NotificationCompat.Builder(context)
+                            .setContentTitle(context.getString(R.string.notification_title))
+                            .setLargeIcon(bitmap)
+                            .setSmallIcon(iconId)
+                            .setContentText(contentText)
+                            .setContentIntent(pendingIntent)
+                            .build();
+
+                    NotificationManagerCompat.from(context).notify(WEATHER_NOTIFICATION_ID, notification);
+
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putLong(context.getString(R.string.pref_last_notification), System.currentTimeMillis());
+                    editor.apply();
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+
+
             }
         }
     }

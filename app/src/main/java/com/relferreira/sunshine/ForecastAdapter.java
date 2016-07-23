@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.relferreira.sunshine.data.WeatherContract;
 
 import org.w3c.dom.Text;
@@ -67,7 +68,14 @@ public class ForecastAdapter extends CursorAdapter {
             weatherIcon = Utility.getArtResourceForWeatherCondition(weatherId);
         else
             weatherIcon = Utility.getIconResourceForWeatherCondition(weatherId);
-        viewHolder.iconView.setImageResource(weatherIcon);
+
+        //viewHolder.iconView.setImageResource(weatherIcon);
+        Glide.with(mContext)
+                .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                .placeholder(weatherIcon)
+                .error(weatherIcon)
+                .crossFade()
+                .into(viewHolder.iconView);
 
         long weatherDate = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
         viewHolder.dateView.setText(Utility.getDayName(context, weatherDate));

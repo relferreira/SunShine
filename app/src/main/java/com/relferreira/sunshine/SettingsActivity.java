@@ -38,6 +38,7 @@ public class SettingsActivity extends PreferenceActivity
         // updated when the preference changes.
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_unit_key)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_theme_key)));
 
     }
 
@@ -102,7 +103,7 @@ public class SettingsActivity extends PreferenceActivity
             location = Utility.getPreferredLocation(this);
             Utility.resetLocationStatus(this);
             SunshineSyncAdapter.syncImmediately(this);
-        } else if(s.equals(getString(R.string.pref_unit_key))){
+        } else if(s.equals(getString(R.string.pref_unit_key)) || s.equals(getString(R.string.pref_theme_key))){
             getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
         } else if(s.equals(getString(R.string.pref_location_status_key))) {
             int status = sharedPreferences.getInt(s, SunshineSyncAdapter.LOCATION_STATUS_OK);

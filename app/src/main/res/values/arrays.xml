@@ -11,4 +11,17 @@
         <item>imperial</item>
     </string-array>
 
+
+    <string-array name="pref_themes">
+        <item>Default</item>
+        <item>Colored</item>
+        <item>Mono</item>
+    </string-array>
+
+    <string-array name="pref_themes_values">
+        <item>default</item>
+        <item>colored</item>
+        <item>mono</item>
+    </string-array>
+
 </resources>

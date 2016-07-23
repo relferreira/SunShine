@@ -16,7 +16,8 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             tools:src="@mipmap/ic_launcher"
-            android:contentDescription="@null" />
+            android:contentDescription="@null"
+            android:adjustViewBounds="true"/>
     </FrameLayout>
     <LinearLayout
         android:layout_width="0dp"

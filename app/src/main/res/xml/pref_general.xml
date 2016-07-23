@@ -11,11 +11,18 @@
         app:minLength="3"/>
 
     <ListPreference
-        android:title="@string/pref_unit_label"
-        android:key="@string/pref_unit_key"
-        android:defaultValue="@string/pref_unit_default"
-        android:entries="@array/pref_units"
-        android:entryValues="@array/pref_units_values" />
+    android:title="@string/pref_unit_label"
+    android:key="@string/pref_unit_key"
+    android:defaultValue="@string/pref_unit_default"
+    android:entries="@array/pref_units"
+    android:entryValues="@array/pref_units_values" />
+
+    <ListPreference
+        android:title="@string/pref_theme_label"
+        android:key="@string/pref_theme_key"
+        android:defaultValue="@string/pref_theme_default"
+        android:entries="@array/pref_themes"
+        android:entryValues="@array/pref_themes_values" />
 
     <CheckBoxPreference
         android:title="@string/pref_enable_notifications_label"
