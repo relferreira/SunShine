@@ -56,6 +56,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int LOCATION_STATUS_SERVER_DOWN = 1;
     public static final int LOCATION_STATUS_SERVER_INVALID = 2;
     public static final int LOCATION_STATUS_UNKNOWN = 3;
+    public static final int LOCATION_STATUS_INVALID = 4;
 
     public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
     // Interval at which to sync with the weather, in seconds.
@@ -303,6 +304,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         final String OWM_CITY = "city";
         final String OWM_CITY_NAME = "name";
         final String OWM_COORD = "coord";
+        final String OWM_MESSAGE_CODE = "cod";
 
         // Location coordinate
         final String OWM_LATITUDE = "lat";
@@ -327,6 +329,21 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
 
         JSONObject forecastJson = new JSONObject(forecastJsonStr);
+
+        if(forecastJson.has(OWM_MESSAGE_CODE)){
+            int statusCode = forecastJson.getInt(OWM_MESSAGE_CODE);
+            if (statusCode == HttpURLConnection.HTTP_OK){
+                setLocationStatus(LOCATION_STATUS_OK);
+            } else if(statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
+                setLocationStatus(LOCATION_STATUS_INVALID);
+                return null;
+            } else {
+                setLocationStatus(LOCATION_STATUS_SERVER_DOWN);
+                return null;
+            }
+        }
+
+
         JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
         JSONObject cityJson = forecastJson.getJSONObject(OWM_CITY);

@@ -183,7 +183,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     public void onLocationChanged(){
-        updateWeather();
         getLoaderManager().restartLoader(LOADER_ID, null, this);
 
     }
@@ -224,6 +223,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             emptyView.setText(getString(R.string.empty_forecast_list_server_down));
         else if(locationStatus == SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID)
             emptyView.setText(getString(R.string.empty_forecast_list_server_error));
+        else if(locationStatus == SunshineSyncAdapter.LOCATION_STATUS_INVALID)
+            emptyView.setText(getString(R.string.empty_forecast_list_invalid_location));
         else if(listView.getCount() == 0 && !isConnected())
             emptyView.setText(getString(R.string.empty_list_internet));
         else if (listView.getCount() == 0)

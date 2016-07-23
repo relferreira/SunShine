@@ -11,6 +11,9 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 
+import com.relferreira.sunshine.data.WeatherContract;
+import com.relferreira.sunshine.sync.SunshineSyncAdapter;
+
 /**
  * A {@link PreferenceActivity} that presents a set of application settings.
  * <p>
@@ -20,7 +23,10 @@ import android.view.KeyEvent;
  * API Guide</a> for more information on developing a Settings UI.
  */
 public class SettingsActivity extends PreferenceActivity
-        implements Preference.OnPreferenceChangeListener {
+        implements Preference.OnPreferenceChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
+
+    private SharedPreferences pref;
+    private String location;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -32,6 +38,7 @@ public class SettingsActivity extends PreferenceActivity
         // updated when the preference changes.
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_unit_key)));
+
     }
 
     /**
@@ -75,5 +82,42 @@ public class SettingsActivity extends PreferenceActivity
     public Intent getParentActivityIntent() {
         return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        pref = PreferenceManager.getDefaultSharedPreferences(this);
+        pref.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        pref.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        if(s.equals(getString(R.string.pref_location_key))){
+            location = Utility.getPreferredLocation(this);
+            Utility.resetLocationStatus(this);
+            SunshineSyncAdapter.syncImmediately(this);
+        } else if(s.equals(getString(R.string.pref_unit_key))){
+            getContentResolver().notifyChange(WeatherContract.WeatherEntry.CONTENT_URI, null);
+        } else if(s.equals(getString(R.string.pref_location_status_key))) {
+            int status = sharedPreferences.getInt(s, SunshineSyncAdapter.LOCATION_STATUS_OK);
+            Preference pref = findPreference(getString(R.string.pref_location_key));
+            if(status == SunshineSyncAdapter.LOCATION_STATUS_INVALID){
+                pref.setSummary(getString(R.string.pref_location_error_description, location));
+            } else if (status == SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN){
+                pref.setSummary(getString(R.string.pref_location_unknown_description, location));
+            } else if(status == SunshineSyncAdapter.LOCATION_STATUS_OK) {
+                pref.setSummary(location);
+            } else {
+                pref.setSummary(getString(R.string.pref_location_error_server));
+            }
+        }
+    }
+
 
 }

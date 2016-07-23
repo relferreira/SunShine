@@ -38,6 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="30dp"
+                android:layout_marginStart="30dp"
                 android:orientation="vertical">
                 <TextView
                     android:id="@+id/detail_high_textview"
@@ -51,6 +52,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="20dp"
+                    android:layout_marginStart="20dp"
                     android:fontFamily="sans-serif-light"
                     android:textSize="48sp"
                     android:textColor="@color/text_gray"
@@ -70,7 +72,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        tools:src="@mipmap/ic_launcher"/>
+                        tools:src="@mipmap/ic_launcher"
+                        android:contentDescription="@null" />
                 </FrameLayout>
                 <TextView
                     android:id="@+id/detail_forecast_textview"
@@ -107,9 +110,6 @@
             android:textAppearance="?android:textAppearanceLarge"
             tools:text="PRESSURE: 10 hPa"/>
 
-        <com.relferreira.sunshine.MyView
-            android:layout_width="100dp"
-            android:layout_height="100dp" />
     </LinearLayout>
 
 

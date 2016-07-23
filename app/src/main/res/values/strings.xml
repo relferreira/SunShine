@@ -19,6 +19,7 @@
     <string name="empty_list_internet">No Weather Information Available! \nThe network is not available to fetch the weather data</string>
     <string name="empty_forecast_list_server_down">No weather information available. \nThe server is not returning data.</string>
     <string name="empty_forecast_list_server_error">No weather information available. \nThe server is not returning valid data. Please check for an updated version of Sunshine.</string>
+    <string name="empty_forecast_list_invalid_location">No weather information available. \nThe location in settings is not recognized by the weather server.</string>
     <string name="format_full_friendly_date"><xliff:g id="day">%1$s</xliff:g>, <xliff:g id="date">%2$s</xliff:g></string>
     <string name="formated_temperature"><xliff:g id="temp">%1.0f</xliff:g>\u00b0</string>
     <!-- Windspeed formats -->
@@ -41,6 +42,9 @@
     <string name="pref_location_label">Location</string>
     <string name="pref_location_default" translatable="false">94043,USA</string>
     <string name="pref_location_status_key">location_status_key</string>
+    <string name="pref_location_error_description">Invalid Location (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
+    <string name="pref_location_unknown_description">Validating Location… (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
+    <string name="pref_location_error_server">Error communicating with server</string>
     <string name="pref_unit_key" translatable="false">unit</string>
     <string name="pref_unit_label">Temperatura Units</string>
     <string name="pref_unit_default" translatable="false">metric</string>
@@ -61,5 +65,9 @@
     <string name="pref_enable_notifications_false">Not Enabled</string>
     <string name="pref_enable_notifications_default" translatable="false">true</string>
 
+    <string name="a11y_low_temp">Low: <xliff:g id="low">%1$s</xliff:g></string>
+    <string name="a11y_high_temp">High: <xliff:g id="high">%1$s</xliff:g></string>
+    <string name="a11y_forecast_icon">Forecast icon: <xliff:g id="condition">%1$s</xliff:g></string>
+    <string name="a11y_forecast">Forecast: <xliff:g id="condition">%1$s</xliff:g></string>
 
 </resources>

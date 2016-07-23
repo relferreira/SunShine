@@ -5,9 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingRight="16dp"
+    android:paddingEnd="16dp"
     android:paddingTop="16dp"
     android:paddingBottom="16dp"
     android:paddingLeft="60dp"
+    android:paddingStart="60dp"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:background="@drawable/touch_selector_today">
@@ -55,7 +57,8 @@
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:layout_gravity="center"
-                tools:src="@mipmap/ic_launcher"/>
+                tools:src="@mipmap/ic_launcher"
+                android:contentDescription="@null" />
         </FrameLayout>
         <TextView
             android:id="@+id/list_item_forecast_textview"
