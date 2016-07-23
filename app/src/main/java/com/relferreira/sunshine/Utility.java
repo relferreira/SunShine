@@ -24,6 +24,8 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
 
+import com.relferreira.sunshine.sync.SunshineSyncAdapter;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -257,4 +259,10 @@ public class Utility {
         }
         return -1;
     }
+
+    public static int getLocationStatus(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getInt(context.getString(R.string.pref_location_status_key), SunshineSyncAdapter.LOCATION_STATUS_OK);
+    }
+
 }

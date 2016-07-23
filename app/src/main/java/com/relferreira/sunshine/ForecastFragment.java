@@ -2,15 +2,20 @@ package com.relferreira.sunshine;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.net.ConnectivityManagerCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.TextView;
 
 import com.relferreira.sunshine.data.WeatherContract;
 import com.relferreira.sunshine.sync.SunshineSyncAdapter;
@@ -29,7 +35,7 @@ import java.util.ArrayList;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String FORECAST_TAG = "forecast_tag";
     public static final String SELECTED_ITEM_POSITION = "selected_item_position";
@@ -61,6 +67,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private ListView listView;
     private int selectedPosition;
     private boolean twoPanel;
+    private TextView emptyView;
+    private SharedPreferences pref;
+    private int locationStatus;
+
 
     public interface ForecastCallback {
 
@@ -83,9 +93,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         listView = (ListView) view.findViewById(R.id.listview_forecast);
+        emptyView = (TextView) view.findViewById(R.id.empty_forecast);
         adapter = new ForecastAdapter(getActivity(), null, 0);
         adapter.setTwoPanelMode(twoPanel);
         listView.setAdapter(adapter);
+        listView.setEmptyView(emptyView);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -113,6 +125,19 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        pref = PreferenceManager.getDefaultSharedPreferences(getContext());
+        pref.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        pref.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.forecastfragment, menu);
     }
@@ -128,6 +153,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        if(s.equals(getString(R.string.pref_location_status_key))) {
+            locationStatus = sharedPreferences.getInt(s, SunshineSyncAdapter.LOCATION_STATUS_OK);
+            updateEmptyView();
+        }
     }
 
     private void launchMapIntent(){
@@ -183,8 +216,20 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.swapCursor(data);
         listView.smoothScrollToPosition(selectedPosition);
-
+        updateEmptyView();
     }
+
+    private void updateEmptyView() {
+        if(locationStatus == SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN)
+            emptyView.setText(getString(R.string.empty_forecast_list_server_down));
+        else if(locationStatus == SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID)
+            emptyView.setText(getString(R.string.empty_forecast_list_server_error));
+        else if(listView.getCount() == 0 && !isConnected())
+            emptyView.setText(getString(R.string.empty_list_internet));
+        else if (listView.getCount() == 0)
+            emptyView.setText(getString(R.string.empy_list));
+    }
+
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
@@ -201,5 +246,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         this.twoPanel = twoPanel;
         if(adapter != null)
             adapter.setTwoPanelMode(twoPanel);
+    }
+
+    private boolean isConnected() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+
     }
 }
