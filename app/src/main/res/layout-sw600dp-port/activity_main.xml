@@ -24,57 +24,40 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-            <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/list_icon"
-                android:layout_marginStart="@dimen/list_icon"
-                android:paddingLeft="@dimen/abc_list_item_padding_horizontal_material"
-                android:paddingStart="@dimen/abc_list_item_padding_horizontal_material">
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="?attr/listPreferredItemHeight"
                     android:layout_marginTop="?attr/actionBarSize"
+                    android:layout_marginBottom="@dimen/details_app_bar_overlap"
                     android:layout_gravity="center_horizontal"
                     android:src="@drawable/ic_logo"
                     android:scaleType="center"/>
-            </FrameLayout>
-
         </android.support.v7.widget.Toolbar>
     </LinearLayout>
-    <android.support.v4.widget.Space
-        android:id="@+id/layout_center"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_centerInParent="true"/>
-    <fragment
-        android:id="@+id/fragment_forecast"
-        android:name="com.relferreira.sunshine.ForecastFragment"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_alignEnd="@id/layout_center"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@id/layout_center"
-        android:layout_below="@id/appbar"
-        tools:layout="@android:layout/list_content"/>
-
     <android.support.v7.widget.CardView
         android:id="@+id/weather_detail_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignLeft="@id/layout_center"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:layout_alignStart="@id/layout_center"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/appbar"
+        android:layout_marginTop="@dimen/details_app_bar_overlap_negative"
+        android:layout_alignRight="@id/appbar"
         card_view:cardElevation="@dimen/detail_card_elevation"
+        android:layout_marginLeft="@dimen/abc_list_item_padding_horizontal_material"
+        android:layout_marginStart="@dimen/abc_list_item_padding_horizontal_material"
         android:layout_marginRight="@dimen/abc_list_item_padding_horizontal_material"
         android:layout_marginEnd="@dimen/abc_list_item_padding_horizontal_material"
-        android:layout_marginBottom="@dimen/abc_list_item_padding_horizontal_material"
-        card_view:cardUseCompatPadding="true"
+        android:paddingBottom="@dimen/abc_list_item_padding_horizontal_material"
         app:cardPreventCornerOverlap="true"/>
+    <fragment
+        android:id="@+id/fragment_forecast"
+        android:name="com.relferreira.sunshine.ForecastFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/weather_detail_container"
+        tools:layout="@android:layout/list_content"/>
+
 
 
 </RelativeLayout>

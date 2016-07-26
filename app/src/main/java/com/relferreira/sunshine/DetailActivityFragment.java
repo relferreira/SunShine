@@ -10,13 +10,18 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.ShareActionProvider;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -88,36 +93,41 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-
-        inflater.inflate(R.menu.detail, menu);
-        MenuItem item = menu.findItem(R.id.action_share);
-
-        shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
-
-        if(forecast != null)
-            setShareIntent();
+        if(getActivity() instanceof DetailActivity) {
+            inflater.inflate(R.menu.detail, menu);
+            setMenuShare(menu);
+        }
 
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if(id == R.id.action_settings){
-            Intent intent = new Intent(getActivity(), SettingsActivity.class);
-            startActivity(intent);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    private void setMenuShare(Menu menu) {
+        MenuItem item = menu.findItem(R.id.action_share);
+        shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+        if (forecast != null)
+            setShareIntent();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_detail, container, false);
+        View view = inflater.inflate(R.layout.fragment_detail_start, container, false);
+
+        AppCompatActivity activity = (AppCompatActivity)getActivity();
+        Toolbar toolbar = (Toolbar) view.findViewById(R.id.detail_toolbar);
+        if(activity instanceof DetailActivity) {
+            activity.setSupportActionBar(toolbar);
+            ActionBar actionBar = activity.getSupportActionBar();
+            if (actionBar != null)
+                actionBar.setDisplayHomeAsUpEnabled(true);
+        } else {
+            Menu menu = toolbar.getMenu();
+            if(menu != null)
+                menu.clear();
+            toolbar.inflateMenu(R.menu.detail);
+            setMenuShare(toolbar.getMenu());
+        }
 
         iconView = (ImageView) view.findViewById(R.id.detail_icon);
-        friendlyDateView = (TextView) view.findViewById(R.id.detail_friendly_date_textview);
         dateView = (TextView) view.findViewById(R.id.detail_date_textview);
         descriptionView = (TextView) view.findViewById(R.id.detail_forecast_textview);
         highTempView = (TextView) view.findViewById(R.id.detail_high_textview);
@@ -138,61 +148,74 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         uri = null;
-        if(getArguments() != null)
+        if(getArguments() != null) {
             uri = getArguments().getParcelable(ARG_WEATHER);
-        else
-            return null;
+        } else {
+            ViewParent vp = getView().getParent();
+            if ( vp instanceof CardView) {
+                ((View) vp).setVisibility(View.INVISIBLE);
+            }
+                return null;
+        }
         return new CursorLoader(getActivity(), uri, FORECAST_COLUMNS, null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        data.moveToFirst();
+        if(data.moveToFirst()) {
 
-        int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
+            ViewParent vp = getView().getParent();
+            if ( vp instanceof CardView ) {
+                ((View)vp).setVisibility(View.VISIBLE);
+            }
 
-        long weatherDate = data.getLong(COL_WEATHER_DATE);
-        friendlyDateView.setText(Utility.getDayName(getContext(), weatherDate));
-        dateView.setText(Utility.getFormattedMonthDay(getContext(), weatherDate));
+            int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
 
-        String weatherForecast = data.getString(COL_WEATHER_DESC);
-        descriptionView.setText(weatherForecast);
+            long weatherDate = data.getLong(COL_WEATHER_DATE);
 
-        Glide.with(getContext())
-                .load(Utility.getArtUrlForWeatherCondition(getActivity(), weatherId))
-                .error(Utility.getArtResourceForWeatherCondition(weatherId))
-                .into(iconView);
-        iconView.setContentDescription(getString(R.string.a11y_forecast_icon, weatherForecast));
+            dateView.setText(getString(R.string.format_full_friendly_date,
+                    Utility.getDayName(getContext(), weatherDate),
+                    Utility.getFormattedMonthDay(getContext(), weatherDate)));
 
-        boolean isMetric = Utility.isMetric(getContext());
+            String weatherForecast = data.getString(COL_WEATHER_DESC);
+            descriptionView.setText(weatherForecast);
 
-        double high = data.getDouble(COL_WEATHER_MAX_TEMP);
-        String highString = Utility.formatTemperature(getContext(), high, isMetric);
-        highTempView.setText(highString);
-        highTempView.setContentDescription(getString(R.string.a11y_high_temp, highString));
+            Glide.with(getContext())
+                    .load(Utility.getArtUrlForWeatherCondition(getActivity(), weatherId))
+                    .error(Utility.getArtResourceForWeatherCondition(weatherId))
+                    .into(iconView);
+            iconView.setContentDescription(getString(R.string.a11y_forecast_icon, weatherForecast));
 
-        double low = data.getDouble(COL_WEATHER_MIN_TEMP);
-        String lowString = Utility.formatTemperature(getContext(), low, isMetric);
-        lowTempView.setText(lowString);
-        lowTempView.setContentDescription(getString(R.string.a11y_low_temp, lowString));
+            boolean isMetric = Utility.isMetric(getContext());
 
-        float humidity = data.getFloat(COL_HUMIDITY);
-        humidityView.setText(Utility.getFormatedHumidity(getContext(), humidity));
-        humidityView.setContentDescription(humidityView.getText());
+            double high = data.getDouble(COL_WEATHER_MAX_TEMP);
+            String highString = Utility.formatTemperature(getContext(), high, isMetric);
+            highTempView.setText(highString);
+            highTempView.setContentDescription(getString(R.string.a11y_high_temp, highString));
 
-        float wind = data.getFloat(COL_WIND_SPEED);
-        float degree = data.getFloat(COL_DEGREE);
-        windView.setText(Utility.getFormattedWind(getContext(), wind, degree));
-        windView.setContentDescription(windView.getText());
+            double low = data.getDouble(COL_WEATHER_MIN_TEMP);
+            String lowString = Utility.formatTemperature(getContext(), low, isMetric);
+            lowTempView.setText(lowString);
+            lowTempView.setContentDescription(getString(R.string.a11y_low_temp, lowString));
 
-        float pressure = data.getFloat(COL_PRESSURE);
-        pressureView.setText(Utility.getFormatedPressure(getContext(), pressure));
-        pressureView.setContentDescription(pressureView.getText());
+            float humidity = data.getFloat(COL_HUMIDITY);
+            humidityView.setText(Utility.getFormatedHumidity(getContext(), humidity));
+            humidityView.setContentDescription(humidityView.getText());
 
-        forecast = String.format("%s - %s - %s/%s", weatherDate, weatherForecast, high, low);
+            float wind = data.getFloat(COL_WIND_SPEED);
+            float degree = data.getFloat(COL_DEGREE);
+            windView.setText(Utility.getFormattedWind(getContext(), wind, degree));
+            windView.setContentDescription(windView.getText());
 
-        if(shareActionProvider != null)
-            setShareIntent();
+            float pressure = data.getFloat(COL_PRESSURE);
+            pressureView.setText(Utility.getFormatedPressure(getContext(), pressure));
+            pressureView.setContentDescription(pressureView.getText());
+
+            forecast = String.format("%s - %s - %s/%s", weatherDate, weatherForecast, high, low);
+
+            if (shareActionProvider != null)
+                setShareIntent();
+        }
     }
 
     @Override

@@ -3,22 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-
     android:minHeight="?android:attr/listPreferredItemHeight"
+    android:paddingLeft="@dimen/list_item_extra_padding"
+    android:paddingRight="@dimen/list_item_extra_padding"
     android:gravity="center_vertical"
     android:background="@drawable/touch_selector">
-    <FrameLayout
-        android:layout_width="60dp"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/list_item_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            tools:src="@mipmap/ic_launcher"
-            android:contentDescription="@null"
-            android:adjustViewBounds="true"/>
-    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/list_item_icon"
+        android:layout_width="@dimen/list_icon"
+        android:layout_height="@dimen/list_icon"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_gravity="center"
+        tools:src="@mipmap/ic_launcher"
+        android:contentDescription="@null"
+        android:adjustViewBounds="true"/>
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -28,36 +28,36 @@
             android:id="@+id/list_item_date_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-condensed"
-            android:textAppearance="?android:textAppearanceLarge"
+            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             tools:text="TOMORROW"/>
         <TextView
             android:id="@+id/list_item_forecast_textview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:fontFamily="sans-serif-condensed"
-            android:textAppearance="?android:textAppearanceSmall"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textColor="@color/secondary_text"
             tools:text="CLEAR"/>
     </LinearLayout>
-    <LinearLayout
-        android:layout_width="0dp"
+    <TextView
+        android:id="@+id/list_item_high_textview"
+        android:layout_width="@dimen/forecast_text_width"
         android:layout_height="wrap_content"
-        android:layout_weight="5"
-        android:gravity="center"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/list_item_high_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:textAppearanceLarge"
-            tools:text="21"/>
-        <TextView
-            android:id="@+id/list_item_low_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:textAppearance="?android:textAppearanceSmall"
-            tools:text="8"/>
-    </LinearLayout>
+        android:fontFamily="sans-serif-light"
+        android:textColor="@color/primary_text"
+        android:textSize="@dimen/forecast_text_size"
+        tools:text="21"/>
+
+    <TextView
+        android:id="@+id/list_item_low_textview"
+        android:layout_width="@dimen/forecast_text_width"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="@dimen/forecast_temperature_space"
+        android:layout_marginStart="@dimen/forecast_temperature_space"
+        android:gravity="right"
+        android:textSize="@dimen/forecast_text_size"
+        android:fontFamily="sans-serif-light"
+        android:textColor="@color/forecast_low_text"
+        tools:text="8"/>
 </LinearLayout>

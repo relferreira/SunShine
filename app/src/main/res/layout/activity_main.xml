@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/fragment_forecast"
-    android:name="com.relferreira.sunshine.ForecastFragment"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_weight="2"
-    tools:layout="@android:layout/list_content"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.relferreira.sunshine.MainActivity" />
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <include layout="@layout/toolbar_main" />
+    <fragment
+        android:id="@+id/fragment_forecast"
+        android:name="com.relferreira.sunshine.ForecastFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        tools:layout="@android:layout/list_content"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:context="com.relferreira.sunshine.MainActivity" />
 
+</LinearLayout>
 
