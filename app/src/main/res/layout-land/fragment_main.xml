@@ -6,8 +6,8 @@
     android:elevation="@dimen/appbar_elevation"
     tools:context=".ForecastFragment">
 
-    <ListView
-        android:id="@+id/listview_forecast"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerview_forecast"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         style="@style/ForecastList"/>

@@ -15,15 +15,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.net.ConnectivityManagerCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.TextView;
 
@@ -35,7 +34,10 @@ import java.util.ArrayList;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
+public class ForecastFragment extends Fragment implements
+        LoaderManager.LoaderCallbacks<Cursor>,
+        SharedPreferences.OnSharedPreferenceChangeListener,
+        ForecastAdapter.ForecasAdapterOnClickHandler{
 
     public static final String FORECAST_TAG = "forecast_tag";
     public static final String SELECTED_ITEM_POSITION = "selected_item_position";
@@ -64,7 +66,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private ForecastAdapter adapter;
     private ArrayList<String> weekForecast = new ArrayList<>();
-    private ListView listView;
+    private RecyclerView recyclerView;
     private int selectedPosition;
     private boolean twoPanel;
     private TextView emptyView;
@@ -92,25 +94,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        listView = (ListView) view.findViewById(R.id.listview_forecast);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_forecast);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         emptyView = (TextView) view.findViewById(R.id.empty_forecast);
-        adapter = new ForecastAdapter(getActivity(), null, 0);
+        adapter = new ForecastAdapter(getActivity(), null, 0, emptyView, this);
         adapter.setTwoPanelMode(twoPanel);
-        listView.setAdapter(adapter);
-        listView.setEmptyView(emptyView);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-                if(cursor != null){
-                    String location = Utility.getPreferredLocation(getActivity());
-                    Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(location, cursor.getLong(COL_WEATHER_DATE));
-                    ForecastCallback callback = (ForecastCallback) getActivity();
-                    callback.onItemSelected(uri);
-                }
-            }
-        });
+        recyclerView.setAdapter(adapter);
+        //recyclerView.setEmptyView(emptyView);
 
         if(savedInstanceState != null){
             selectedPosition = savedInstanceState.getInt(SELECTED_ITEM_POSITION);
@@ -214,7 +204,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.swapCursor(data);
-        listView.smoothScrollToPosition(selectedPosition);
+        recyclerView.smoothScrollToPosition(selectedPosition);
         updateEmptyView();
     }
 
@@ -225,9 +215,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             emptyView.setText(getString(R.string.empty_forecast_list_server_error));
         else if(locationStatus == SunshineSyncAdapter.LOCATION_STATUS_INVALID)
             emptyView.setText(getString(R.string.empty_forecast_list_invalid_location));
-        else if(listView.getCount() == 0 && !isConnected())
+        else if(adapter.getItemCount() == 0 && !isConnected())
             emptyView.setText(getString(R.string.empty_list_internet));
-        else if (listView.getCount() == 0)
+        else if (adapter.getItemCount() == 0)
             emptyView.setText(getString(R.string.empy_list));
     }
 
@@ -239,7 +229,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putInt(SELECTED_ITEM_POSITION, listView.getCheckedItemPosition());
+        //TODO
+        outState.putInt(SELECTED_ITEM_POSITION, selectedPosition);
         super.onSaveInstanceState(outState);
     }
 
@@ -256,5 +247,16 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
 
+    }
+
+    @Override
+    public void click(Cursor cursor, ForecastAdapter.ForecastViewHolder vh) {
+        if(cursor != null){
+            String location = Utility.getPreferredLocation(getActivity());
+            Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(location, cursor.getLong(COL_WEATHER_DATE));
+            ForecastCallback callback = (ForecastCallback) getActivity();
+            callback.onItemSelected(uri);
+            selectedPosition = vh.getAdapterPosition();
+        }
     }
 }

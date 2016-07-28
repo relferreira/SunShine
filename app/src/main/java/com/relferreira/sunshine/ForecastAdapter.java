@@ -3,6 +3,7 @@ package com.relferreira.sunshine;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v4.widget.CursorAdapter;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,48 +19,45 @@ import org.w3c.dom.Text;
  * {@link ForecastAdapter} exposes a list of weather forecasts
  * from a {@link android.database.Cursor} to a {@link android.widget.ListView}.
  */
-public class ForecastAdapter extends CursorAdapter {
+public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ForecastViewHolder> {
 
     private static final int VIEW_TYPE_TODAY = 0;
     private static final int VIEW_TYPE_FUTURE_DAY = 1;
+    private final int flags;
+    private View emptyView;
+    private final ForecasAdapterOnClickHandler handler;
+    private Cursor cursor;
+    private Context context;
     private boolean twoPanelMode;
 
-    public ForecastAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
+    interface ForecasAdapterOnClickHandler {
+        void click(Cursor cursor, ForecastViewHolder vh);
+    }
+
+    public ForecastAdapter(Context context, Cursor c, int flags, View emptyView, ForecasAdapterOnClickHandler handler) {
+        this.context = context;
+        this.cursor = c;
+        this.flags = flags;
+        this.emptyView = emptyView;
+        this.handler = handler;
+
     }
 
     public void setTwoPanelMode(boolean twoPanel) {
         this.twoPanelMode = twoPanel;
     }
+
     @Override
-    public int getItemViewType(int position) {
-        return (position == 0 && !twoPanelMode) ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY;
+    public ForecastViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        int layoutId = (viewType == VIEW_TYPE_TODAY) ? R.layout.list_item_forecast_today : R.layout.list_item_forecast;
+        View view = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
+        return new ForecastViewHolder(view);
     }
 
     @Override
-    public int getViewTypeCount() {
-        return 2;
-    }
+    public void onBindViewHolder(ForecastViewHolder viewHolder, int position) {
 
-    /*
-            Remember that these views are reused as needed.
-         */
-    @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        int layoutId = (getItemViewType(cursor.getPosition()) == VIEW_TYPE_TODAY) ? R.layout.list_item_forecast_today : R.layout.list_item_forecast;
-        View view = LayoutInflater.from(context).inflate(layoutId, parent, false);
-        ViewHolder viewHolder = new ViewHolder(view);
-        view.setTag(viewHolder);
-        return view;
-    }
-
-    /*
-        This is where we fill-in the views with the contents of the cursor.
-     */
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-
-        ViewHolder viewHolder = (ViewHolder) view.getTag();
+        cursor.moveToPosition(position);
 
         int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
 
@@ -70,7 +68,7 @@ public class ForecastAdapter extends CursorAdapter {
             weatherIcon = Utility.getIconResourceForWeatherCondition(weatherId);
 
         //viewHolder.iconView.setImageResource(weatherIcon);
-        Glide.with(mContext)
+        Glide.with(context)
                 .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
                 .placeholder(weatherIcon)
                 .error(weatherIcon)
@@ -99,7 +97,27 @@ public class ForecastAdapter extends CursorAdapter {
         viewHolder.lowTempView.setContentDescription(context.getString(R.string.a11y_low_temp, low));
     }
 
-    public static class ViewHolder {
+    @Override
+    public int getItemViewType(int position) {
+        return (position == 0 && !twoPanelMode) ? VIEW_TYPE_TODAY : VIEW_TYPE_FUTURE_DAY;
+    }
+
+    @Override
+    public int getItemCount() {
+        return (cursor != null) ? cursor.getCount() : 0;
+    }
+
+    public Cursor getCursor() {
+        return cursor;
+    }
+
+    public void swapCursor(Cursor cursor) {
+        this.cursor = cursor;
+        emptyView.setVisibility((cursor.getCount() == 0) ? View.VISIBLE : View.GONE);
+        notifyDataSetChanged();
+    }
+
+    public class ForecastViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         public final ImageView iconView;
         public final TextView dateView;
@@ -107,12 +125,21 @@ public class ForecastAdapter extends CursorAdapter {
         public final TextView highTempView;
         public final TextView lowTempView;
 
-        public ViewHolder(View view){
+        public ForecastViewHolder(View view){
+            super(view);
             iconView = (ImageView) view.findViewById(R.id.list_item_icon);
             dateView = (TextView) view.findViewById(R.id.list_item_date_textview);
             descriptionView = (TextView) view.findViewById(R.id.list_item_forecast_textview);
             highTempView = (TextView) view.findViewById(R.id.list_item_high_textview);
             lowTempView = (TextView) view.findViewById(R.id.list_item_low_textview);
+
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            cursor.moveToPosition(getAdapterPosition());
+            handler.click(cursor, this);
         }
     }
 }
