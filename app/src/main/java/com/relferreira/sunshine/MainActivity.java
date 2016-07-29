@@ -5,12 +5,17 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -30,12 +35,14 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
 
     private String location;
     private boolean twoPanelLayout;
+    private LinearLayout appBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        appBar = (LinearLayout) findViewById(R.id.appbar);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -52,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 String location = Utility.getPreferredLocation(this);
                 Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(location, new Date().getTime());
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.weather_detail_container, DetailActivityFragment.newInstance(uri), DETAILFRAGMENT_TAG)
+                        .replace(R.id.weather_detail_container, DetailActivityFragment.newInstance(uri, false), DETAILFRAGMENT_TAG)
                         .commit();
             }
 
@@ -121,15 +128,17 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
     }
 
     @Override
-    public void onItemSelected (Uri dateUri){
+    public void onItemSelected (Uri dateUri, ForecastAdapter.ForecastViewHolder vh){
         if (twoPanelLayout) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.weather_detail_container, DetailActivityFragment.newInstance(dateUri), DETAILFRAGMENT_TAG)
+                    .replace(R.id.weather_detail_container, DetailActivityFragment.newInstance(dateUri, false), DETAILFRAGMENT_TAG)
                     .commit();
         } else {
             Intent intent = new Intent(this, DetailActivity.class)
                     .setData(dateUri);
-            startActivity(intent);
+            ActivityOptionsCompat activityOptions =
+                    ActivityOptionsCompat.makeSceneTransitionAnimation(this, new Pair<View, String>(vh.iconView, getString(R.string.image_transition)));
+            ActivityCompat.startActivity(this, intent, activityOptions.toBundle());
         }
     }
 
@@ -147,5 +156,9 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             return false;
         }
         return true;
+    }
+
+    public LinearLayout getAppBar() {
+        return appBar;
     }
 }

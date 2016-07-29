@@ -33,11 +33,13 @@ public class DetailActivity extends AppCompatActivity {
         weather = getIntent().getData();
 
         if(savedInstanceState == null){
-            DetailActivityFragment frag = DetailActivityFragment.newInstance(weather);
+            DetailActivityFragment frag = DetailActivityFragment.newInstance(weather, true);
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.weather_detail_container, frag)
                     .commit();
+
+            supportPostponeEnterTransition();
         }
     }
 

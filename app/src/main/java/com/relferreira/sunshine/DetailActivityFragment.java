@@ -61,6 +61,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     static final int COL_WEATHER_CONDITION_ID = 9;
 
     public static final String ARG_WEATHER = "arg_weather";
+    public static final String ARG_TRANSITION = "arg_transition";
     private ShareActionProvider shareActionProvider;
     private String forecast;
     private ImageView iconView;
@@ -73,10 +74,12 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     private TextView pressureView;
     private TextView windView;
     private Uri uri;
+    private boolean transitionAnimation;
 
-    public static DetailActivityFragment newInstance(Uri dateUri){
+    public static DetailActivityFragment newInstance(Uri dateUri, boolean transition){
         Bundle bundle = new Bundle();
         bundle.putParcelable(ARG_WEATHER, dateUri);
+        bundle.putBoolean(ARG_TRANSITION, transition);
         DetailActivityFragment frag = new DetailActivityFragment();
         frag.setArguments(bundle);
         return frag;
@@ -112,6 +115,10 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_detail_start, container, false);
 
+        Bundle args = getArguments();
+        if(args != null) {
+            transitionAnimation = args.getBoolean(ARG_TRANSITION);
+        }
         AppCompatActivity activity = (AppCompatActivity)getActivity();
         Toolbar toolbar = (Toolbar) view.findViewById(R.id.detail_toolbar);
         if(activity instanceof DetailActivity) {
@@ -215,6 +222,9 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
             if (shareActionProvider != null)
                 setShareIntent();
+
+            if(transitionAnimation)
+                getActivity().supportStartPostponedEnterTransition();
         }
     }
 

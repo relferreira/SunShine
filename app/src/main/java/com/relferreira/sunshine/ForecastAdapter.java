@@ -2,6 +2,8 @@ package com.relferreira.sunshine;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Bundle;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -24,6 +26,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
     private static final int VIEW_TYPE_TODAY = 0;
     private static final int VIEW_TYPE_FUTURE_DAY = 1;
     private final int flags;
+    private final ItemChoiceManager mICM;
     private View emptyView;
     private final ForecasAdapterOnClickHandler handler;
     private Cursor cursor;
@@ -34,12 +37,14 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
         void click(Cursor cursor, ForecastViewHolder vh);
     }
 
-    public ForecastAdapter(Context context, Cursor c, int flags, View emptyView, ForecasAdapterOnClickHandler handler) {
+    public ForecastAdapter(Context context, Cursor c, int flags, View emptyView, int choiceMode, ForecasAdapterOnClickHandler handler) {
         this.context = context;
         this.cursor = c;
         this.flags = flags;
         this.emptyView = emptyView;
         this.handler = handler;
+        mICM = new ItemChoiceManager(this);
+        mICM.setChoiceMode(choiceMode);
 
     }
 
@@ -95,6 +100,9 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
                 isMetric);
         viewHolder.lowTempView.setText(low);
         viewHolder.lowTempView.setContentDescription(context.getString(R.string.a11y_low_temp, low));
+
+        ViewCompat.setTransitionName(viewHolder.iconView, "iconView" + position);
+        mICM.onBindViewHolder(viewHolder, position);
     }
 
     @Override
@@ -113,8 +121,31 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 
     public void swapCursor(Cursor cursor) {
         this.cursor = cursor;
-        emptyView.setVisibility((cursor.getCount() == 0) ? View.VISIBLE : View.GONE);
+        emptyView.setVisibility((cursor == null || cursor.getCount() == 0) ? View.VISIBLE : View.GONE);
         notifyDataSetChanged();
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        mICM.onRestoreInstanceState(savedInstanceState);
+    }
+
+    public void onSaveInstanceState(Bundle outState) {
+        mICM.onSaveInstanceState(outState);
+    }
+
+//    public void setUseTodayLayout(boolean useTodayLayout) {
+//        mUseTodayLayout = useTodayLayout;
+//    }
+
+    public int getSelectedItemPosition() {
+        return mICM.getSelectedItemPosition();
+    }
+
+    public void selectView(RecyclerView.ViewHolder viewHolder) {
+        if ( viewHolder instanceof ForecastViewHolder ) {
+            ForecastViewHolder vfh = (ForecastViewHolder)viewHolder;
+            vfh.onClick(vfh.itemView);
+        }
     }
 
     public class ForecastViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -132,6 +163,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
             descriptionView = (TextView) view.findViewById(R.id.list_item_forecast_textview);
             highTempView = (TextView) view.findViewById(R.id.list_item_high_textview);
             lowTempView = (TextView) view.findViewById(R.id.list_item_low_textview);
+
 
             view.setOnClickListener(this);
         }

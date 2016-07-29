@@ -1,13 +1,17 @@
 package com.relferreira.sunshine;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -17,12 +21,18 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.AbsListView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.TextView;
 
@@ -72,11 +82,15 @@ public class ForecastFragment extends Fragment implements
     private TextView emptyView;
     private SharedPreferences pref;
     private int locationStatus;
+    private int mChoiceMode;
+    private boolean mAutoSelectView;
+    private int scrollPosition;
+    private boolean mHoldTransition;
 
 
     public interface ForecastCallback {
 
-        void onItemSelected(Uri dateUri);
+        void onItemSelected(Uri dateUri, ForecastAdapter.ForecastViewHolder vh);
     }
 
     public ForecastFragment() {
@@ -90,6 +104,17 @@ public class ForecastFragment extends Fragment implements
     }
 
     @Override
+    public void onInflate(Activity activity, AttributeSet attrs, Bundle savedInstanceState) {
+        super.onInflate(activity, attrs, savedInstanceState);
+        TypedArray a = activity.obtainStyledAttributes(attrs, R.styleable.ForecastFragment,
+                0, 0);
+        mChoiceMode = a.getInt(R.styleable.ForecastFragment_android_choiceMode, AbsListView.CHOICE_MODE_NONE);
+        mAutoSelectView = a.getBoolean(R.styleable.ForecastFragment_autoSelectView, false);
+        mHoldTransition = a.getBoolean(R.styleable.ForecastFragment_sharedElementTransition, false);
+        a.recycle();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
@@ -97,13 +122,26 @@ public class ForecastFragment extends Fragment implements
         recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_forecast);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         emptyView = (TextView) view.findViewById(R.id.empty_forecast);
-        adapter = new ForecastAdapter(getActivity(), null, 0, emptyView, this);
+        adapter = new ForecastAdapter(getActivity(), null, 0, emptyView, mChoiceMode, this);
         adapter.setTwoPanelMode(twoPanel);
         recyclerView.setAdapter(adapter);
+        final Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayout appBar = ((MainActivity)getActivity()).getAppBar();
+                scrollPosition += dy;
+                if(appBar != null)
+                    appBar.setTranslationY((float) -(scrollPosition * 0.5));
+            }
+        });
         //recyclerView.setEmptyView(emptyView);
 
         if(savedInstanceState != null){
             selectedPosition = savedInstanceState.getInt(SELECTED_ITEM_POSITION);
+            adapter.onRestoreInstanceState(savedInstanceState);
         }
         return view;
     }
@@ -111,6 +149,11 @@ public class ForecastFragment extends Fragment implements
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        if(mHoldTransition){
+            getActivity().supportPostponeEnterTransition();
+        }
+
         getLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
@@ -125,6 +168,13 @@ public class ForecastFragment extends Fragment implements
     public void onPause() {
         super.onPause();
         pref.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(null != recyclerView)
+            recyclerView.clearOnScrollListeners();
     }
 
     @Override
@@ -206,6 +256,31 @@ public class ForecastFragment extends Fragment implements
         adapter.swapCursor(data);
         recyclerView.smoothScrollToPosition(selectedPosition);
         updateEmptyView();
+        if(data.getCount() == 0){
+            getActivity().supportStartPostponedEnterTransition();
+        } else {
+            recyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    // Since we know we're going to get items, we keep the listener around until
+                    // we see Children.
+                    if (recyclerView.getChildCount() > 0) {
+                        recyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                        int itemPosition = adapter.getSelectedItemPosition();
+                        if ( RecyclerView.NO_POSITION == itemPosition ) itemPosition = 0;
+                        RecyclerView.ViewHolder vh = recyclerView.findViewHolderForAdapterPosition(itemPosition);
+                        if ( null != vh && mAutoSelectView ) {
+                            adapter.selectView( vh );
+                        }
+                        if(mHoldTransition) {
+                            getActivity().supportStartPostponedEnterTransition();
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
     }
 
     private void updateEmptyView() {
@@ -231,6 +306,7 @@ public class ForecastFragment extends Fragment implements
     public void onSaveInstanceState(Bundle outState) {
         //TODO
         outState.putInt(SELECTED_ITEM_POSITION, selectedPosition);
+        adapter.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
@@ -255,7 +331,7 @@ public class ForecastFragment extends Fragment implements
             String location = Utility.getPreferredLocation(getActivity());
             Uri uri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(location, cursor.getLong(COL_WEATHER_DATE));
             ForecastCallback callback = (ForecastCallback) getActivity();
-            callback.onItemSelected(uri);
+            callback.onItemSelected(uri, vh);
             selectedPosition = vh.getAdapterPosition();
         }
     }

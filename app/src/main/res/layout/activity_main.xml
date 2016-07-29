@@ -6,16 +6,21 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-    <include layout="@layout/toolbar_main" />
-    <fragment
-        android:id="@+id/fragment_forecast"
-        android:name="com.relferreira.sunshine.ForecastFragment"
+    <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="2"
-        tools:layout="@android:layout/list_content"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:context="com.relferreira.sunshine.MainActivity" />
+        android:layout_height="wrap_content">
+        <include layout="@layout/toolbar_main" />
+        <fragment
+            android:id="@+id/fragment_forecast"
+            android:name="com.relferreira.sunshine.ForecastFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            tools:layout="@android:layout/list_content"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            tools:context="com.relferreira.sunshine.MainActivity"
+            app:sharedElementTransition="true"/>
+    </android.support.design.widget.CoordinatorLayout>
 
 </LinearLayout>
 
