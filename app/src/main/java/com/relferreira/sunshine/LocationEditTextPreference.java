@@ -10,8 +10,16 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.ui.PlacePicker;
 
 /**
  * Created by relferreira on 7/23/16.
@@ -32,6 +40,34 @@ public class LocationEditTextPreference extends EditTextPreference {
         } finally {
             a.recycle();
         }
+
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(getContext());
+        if(resultCode == ConnectionResult.SUCCESS) {
+            setWidgetLayoutResource(R.layout.pref_current_location);
+        }
+    }
+
+    @Override
+    protected View onCreateView(ViewGroup parent) {
+        View view = super.onCreateView(parent);
+        View currentLocation = view.findViewById(R.id.current_location);
+        if(currentLocation != null) {
+            currentLocation.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    SettingsActivity activity = (SettingsActivity) getContext();
+                    PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+                    try {
+                        activity.startActivityForResult(builder.build(activity), SettingsActivity.PLACE_PICKER_REQUEST);
+                    } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+        return view;
+
     }
 
     @Override

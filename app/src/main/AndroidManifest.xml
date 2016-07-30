@@ -13,13 +13,20 @@
     <permission android:name="com.example.android.sunshine.app.permission.C2D_MESSAGE"
             android:protectionLevel="signature" />
     <uses-permission android:name="com.example.android.sunshine.app.permission.C2D_MESSAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        android:name=".SunshineApplication"
         android:theme="@style/AppTheme">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="MAPS_API"/>
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"

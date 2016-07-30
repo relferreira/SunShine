@@ -184,6 +184,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
     private void syncForecast() {
         String locationQuery = Utility.getPreferredLocation(getContext());
+        String locationLatitude = String.valueOf(Utility.getLocationLatitude(getContext()));
+        String locationLongitude = String.valueOf(Utility.getLocationLongitude(getContext()));
 
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
@@ -208,16 +210,25 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             final String UNITS_PARAM = "units";
             final String DAYS_PARAM = "cnt";
             final String APPID_PARAM = "appid";
+            final String LAT_PARAM = "lat";
+            final String LON_PARAM = "lon";
 
             String appId = "05b955346a87c70892273d30f7c0a85f";
 
-            Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
-                    .appendQueryParameter(QUERY_PARAM, locationQuery)
-                    .appendQueryParameter(FORMAT_PARAM, format)
-                    .appendQueryParameter(UNITS_PARAM, units)
-                    .appendQueryParameter(DAYS_PARAM, Integer.toString(numDays))
-                    .appendQueryParameter(APPID_PARAM, appId)
-                    .build();
+            Uri.Builder builder = Uri.parse(FORECAST_BASE_URL).buildUpon();
+
+            if(Utility.isLocationLatLongAvailable(getContext())){
+                builder.appendQueryParameter(LAT_PARAM, locationLatitude);
+                builder.appendQueryParameter(LON_PARAM, locationLongitude);
+            } else {
+                builder.appendQueryParameter(QUERY_PARAM, locationQuery);
+            }
+            builder.appendQueryParameter(FORMAT_PARAM, format);
+            builder.appendQueryParameter(UNITS_PARAM, units);
+            builder.appendQueryParameter(DAYS_PARAM, Integer.toString(numDays));
+            builder.appendQueryParameter(APPID_PARAM, appId);
+
+            Uri builtUri = builder.build();
 
             URL url = new URL(builtUri.toString());
 
@@ -473,9 +484,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     long addLocation(String locationSetting, String cityName, double lat, double lon) {
         // Students: First, check if the location with this city name exists in the db
         Uri uri = WeatherContract.LocationEntry.CONTENT_URI;
-        String selection = WeatherContract.LocationEntry.COLUMN_CITY_NAME + "= ?";
+        String selection = WeatherContract.LocationEntry.COLUMN_CITY_NAME + "= ? AND " +
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?";
 
-        Cursor c = getContext().getContentResolver().query(uri, null, selection, new String[]{cityName}, null);
+        Cursor c = getContext().getContentResolver().query(uri, null, selection, new String[]{cityName, locationSetting}, null);
         if(c != null && c.moveToFirst()) {
             return c.getLong(c.getColumnIndex(WeatherContract.LocationEntry._ID));
         }

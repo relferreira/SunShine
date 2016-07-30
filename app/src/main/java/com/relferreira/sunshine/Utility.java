@@ -35,6 +35,7 @@ public class Utility {
     // Format used for storing dates in the database.  ALso used for converting those strings
     // back into date objects for comparison/processing.
     public static final String DATE_FORMAT = "yyyyMMdd";
+    private static final float DEFAULT_LATLONG = 0F;
 
     /**
      * Helper method to convert the database representation of the date into something to display
@@ -309,5 +310,21 @@ public class Utility {
         SharedPreferences.Editor editor = pref.edit();
         editor.putInt(context.getString(R.string.pref_location_status_key), SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
         editor.apply();
+    }
+
+    public static boolean isLocationLatLongAvailable(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.contains(context.getString(R.string.pref_location_latitude)) &&
+                pref.contains(context.getString(R.string.pref_location_longitude));
+    }
+
+    public static float getLocationLatitude(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getFloat(context.getString(R.string.pref_location_latitude), DEFAULT_LATLONG);
+    }
+
+    public static float getLocationLongitude(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getFloat(context.getString(R.string.pref_location_longitude), DEFAULT_LATLONG);
     }
 }

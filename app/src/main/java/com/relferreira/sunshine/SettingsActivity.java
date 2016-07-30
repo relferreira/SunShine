@@ -9,8 +9,15 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.view.KeyEvent;
+import android.support.design.widget.Snackbar;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.ImageView;
 
+
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
 import com.relferreira.sunshine.data.WeatherContract;
 import com.relferreira.sunshine.sync.SunshineSyncAdapter;
 
@@ -25,8 +32,10 @@ import com.relferreira.sunshine.sync.SunshineSyncAdapter;
 public class SettingsActivity extends PreferenceActivity
         implements Preference.OnPreferenceChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
+    public static final int PLACE_PICKER_REQUEST = 1;
     private SharedPreferences pref;
     private String location;
+    private ImageView mAttribution;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,6 +48,16 @@ public class SettingsActivity extends PreferenceActivity
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_unit_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_theme_key)));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            mAttribution = new ImageView(this);
+            mAttribution.setImageResource(R.drawable.powered_by_google_light);
+
+            if (!Utility.isLocationLatLongAvailable(this)) {
+                mAttribution.setVisibility(View.GONE);
+            }
+            setListFooter(mAttribution);
+        }
 
     }
 
@@ -99,8 +118,17 @@ public class SettingsActivity extends PreferenceActivity
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        location = Utility.getPreferredLocation(this);
         if(s.equals(getString(R.string.pref_location_key))){
-            location = Utility.getPreferredLocation(this);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove(getString(R.string.pref_location_latitude));
+            editor.remove(getString(R.string.pref_location_longitude));
+            editor.commit();
+
+            if (mAttribution != null) {
+                mAttribution.setVisibility(View.GONE);
+            }
+
             Utility.resetLocationStatus(this);
             SunshineSyncAdapter.syncImmediately(this);
         } else if(s.equals(getString(R.string.pref_unit_key)) || s.equals(getString(R.string.pref_theme_key))){
@@ -120,5 +148,40 @@ public class SettingsActivity extends PreferenceActivity
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == PLACE_PICKER_REQUEST){
+            if(resultCode == RESULT_OK){
+                Place place = PlacePicker.getPlace(data, this);
+                String address = place.getAddress().toString();
+                LatLng latLong = place.getLatLng();
 
+                if(TextUtils.isEmpty(address)) {
+                    address = String.format("(%.2f, %.2f)", latLong.latitude, latLong.longitude);
+                }
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(getString(R.string.pref_location_key), address);
+                editor.putFloat(getString(R.string.pref_location_latitude), (float)latLong.latitude);
+                editor.putFloat(getString(R.string.pref_location_longitude), (float)latLong.longitude);
+                editor.commit();
+
+                if (mAttribution != null) {
+                    mAttribution.setVisibility(View.VISIBLE);
+                } else {
+                    // For pre-Honeycomb devices, we cannot add a footer, so we will use a snackbar
+                    View rootView = findViewById(android.R.id.content);
+                    Snackbar.make(rootView, getString(R.string.attribution_text), Snackbar.LENGTH_LONG).show();
+                }
+
+                Preference locationPreference = findPreference(getString(R.string.pref_location_key));
+                locationPreference.setSummary(address);
+                Utility.resetLocationStatus(this);
+                SunshineSyncAdapter.syncImmediately(this);
+
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 }
