@@ -33,6 +33,7 @@ import com.relferreira.sunshine.MainActivity;
 import com.relferreira.sunshine.R;
 import com.relferreira.sunshine.Utility;
 import com.relferreira.sunshine.data.WeatherContract;
+import com.relferreira.sunshine.muzei.WeatherMuzeiSource;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,6 +54,7 @@ import java.util.concurrent.ExecutionException;
 
 public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
+    public static final String ACTION_UPDATE_DATA = "com.relferreira.sunshine.ACTION_DATA_UPDATED";
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({LOCATION_STATUS_OK, LOCATION_STATUS_SERVER_DOWN, LOCATION_STATUS_SERVER_INVALID, LOCATION_STATUS_UNKNOWN})
     public @interface LocationStatus {}
@@ -461,6 +463,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     WeatherContract.WeatherEntry.CONTENT_URI,
                     WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
                     new String[] { String.valueOf(calendar.getTimeInMillis()) });
+
+            Intent dataUpdatedIntent = new Intent(ACTION_UPDATE_DATA);
+            getContext().sendBroadcast(dataUpdatedIntent);
+
+            getContext().startService(new Intent(ACTION_UPDATE_DATA).setClass(getContext(), WeatherMuzeiSource.class));
 
             notifyWeather();
         }
